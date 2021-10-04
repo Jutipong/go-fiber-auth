@@ -1,13 +1,2 @@
-POST   http://localhost:8080/UpdateDocument
-Content-Type: application/json
-
-{
-    "callbackRefid": "971f2002-8817-46b2-8e87-75af59906d05",
-    "seqId": "1",
-    "chronicleId": "test xx",
-    "version": "2.0",
-    "action": "INSERT",
-    "appOwner": "VTM",
-    "docType": "ktb_lc_app_dep_acc",
-    "pageCount": "2"
-}
+GET    http://localhost:8080/auth/login
+Authorization: Basic admin:admin

@@ -3,14 +3,18 @@ package service
 import (
 	"auth/app/auth/model"
 	"auth/app/auth/repository"
+	"auth/pkg/config"
+	"auth/pkg/enum"
 	"auth/pkg/utils"
-	"database/sql"
+	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
+	"golang.org/x/crypto/bcrypt"
 )
 
 type IService interface {
-	UpdateDocument(ctx *fiber.Ctx, req *model.Request) model.Response
+	Login(ctx *fiber.Ctx) (model.Response, error)
 }
 
 type service struct {
@@ -21,69 +25,60 @@ func NewService(repo repository.IRepository) IService {
 	return &service{repo}
 }
 
-func (s *service) UpdateDocument(ctx *fiber.Ctx, req *model.Request) (result model.Response) {
-	// Validate Model
-	if err := req.Validate(); err != nil {
-		return model.Response{IsError: true, ErrorMsg: "missing required field"}
+func (s *service) Login(ctx *fiber.Ctx) (result model.Response, err error) {
+
+	// Validation Model
+	var authReq model.Auth
+	if err = authReq.Validation(ctx); err != nil {
+		return result, err
 	}
 
-	// 1.Inquiry Datas
-	tmpDoc, err := s.repo.Inquiry_TmpDocument(req)
+	// Inquiry in db.
+	auth, err := s.repo.Inquiry_Auth(authReq.UserName)
 	if err != nil {
 		utils.LogErrCtx(ctx, err.Error())
-		return model.Response{IsError: true, ErrorMsg: err.Error()}
+		return result, err
 	}
 
-	docVer, err := s.repo.Inquiry_DocumentVersion(req)
+	//## Validate password
+	if !CheckPasswordHash(authReq.Password, auth) {
+		return result, fiber.ErrUnauthorized
+	}
+
+	result.Token, err = createToken(&auth.User)
 	if err != nil {
-		utils.LogErrCtx(ctx, err.Error())
-		return model.Response{IsError: true, ErrorMsg: err.Error()}
+		return result, err
 	}
 
-	total_DocVerLog, err := s.repo.Inquiry_DocumentVersionLog(req)
+	return result, nil
+}
+
+func createToken(user *model.User) (string, error) {
+	// Get config
+	_config := config.Server()
+	// Create token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set claims
+	claims := token.Claims.(jwt.MapClaims)
+	claims[enum.USER_INFO] = utils.JsonSerialize(*user)
+	claims["exp"] = time.Now().Add(time.Hour * time.Duration(_config.Token_Expire)).Unix()
+
+	// Generate encoded token and send it as response.
+	t, err := token.SignedString([]byte(_config.Secret_Key))
 	if err != nil {
-		utils.LogErrCtx(ctx, err.Error())
-		return model.Response{IsError: true, ErrorMsg: err.Error()}
+		return t, fiber.ErrUnauthorized
 	}
 
-	// 2.Set Value
-	tmpDoc.SeqID = utils.StringEmpty_SetDefault(req.SeqId, "")
-	tmpDoc.ChronicleID = utils.StringEmpty_SetDefault(req.ChronicleId, "")
-	tmpDoc.Version = utils.StringEmpty_SetDefault(req.Version, "")
-	tmpDoc.UploadStatus = "Success"
+	return t, nil
+}
 
-	docVer.LastVersion = tmpDoc.Version
-	docVer.DocFullName = tmpDoc.DocFullName
-	docVer.UpdatedBy = "System"
+func HashPassword(password string) (string, error) {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	return string(bytes), err
+}
 
-	// 3.Init Value
-	var docVerLog model.DocumentVersionlog
-	if total_DocVerLog == 0 {
-		docVerLog.DocumentID = tmpDoc.DocumentID
-		docVerLog.DocTypeID = tmpDoc.DocTypeID
-		docVerLog.DocNo = tmpDoc.DocNo
-		docVerLog.StartDate = tmpDoc.StartDate
-		docVerLog.Enddate = tmpDoc.Enddate
-		docVerLog.FileName = tmpDoc.FileName
-		docVerLog.DocRefNo = tmpDoc.DocRefNo
-		docVerLog.ChronicleID = tmpDoc.ChronicleID
-		docVerLog.SeqID = tmpDoc.SeqID
-		docVerLog.Version = tmpDoc.Version
-		docVerLog.FileSize = tmpDoc.FileSize
-		docVerLog.Status = tmpDoc.Status
-		docVerLog.UploadStatus = tmpDoc.Status
-		docVerLog.ApproveStatus = sql.NullString{}
-		docVerLog.CreatedBy = tmpDoc.CreatedBy
-		docVerLog.UpdatedBy = tmpDoc.UpdatedBy
-		docVerLog.DocFullName = tmpDoc.DocFullName
-	}
-
-	// 4. Save data in database.
-	err = s.repo.Update_Document(&tmpDoc, &docVer, &docVerLog)
-	if err != nil {
-		utils.LogErrCtx(ctx, err.Error())
-		return model.Response{IsError: true, ErrorMsg: err.Error()}
-	}
-
-	return result
+// func CheckPasswordHash(password string, hash string) bool {
+func CheckPasswordHash(passReq string, auth model.Auth) bool {
+	return bcrypt.CompareHashAndPassword([]byte(auth.Password), []byte(passReq+auth.Id)) == nil
 }

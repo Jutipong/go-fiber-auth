@@ -41,5 +41,15 @@ require (
 	github.com/denisenkom/go-mssqldb v0.10.0 // indirect
 	github.com/golang-sql/civil v0.0.0-20190719163853-cb61b32ac6fe // indirect
 	github.com/google/uuid v1.3.0
+	github.com/gookit/validate v1.2.11
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5 // indirect
 )
+
+require (
+	github.com/gofiber/jwt/v3 v3.1.1
+	github.com/gookit/filter v1.1.2 // indirect
+	github.com/gookit/goutil v0.3.12 // indirect
+	github.com/mitchellh/go-homedir v1.1.0 // indirect
+)
+
+require github.com/golang-jwt/jwt/v4 v4.1.0 // indirect

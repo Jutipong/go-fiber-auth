@@ -1,7 +1,6 @@
 package controller
 
 import (
-	"auth/app/auth/model"
 	"auth/app/auth/service"
 
 	"github.com/gofiber/fiber/v2"
@@ -15,18 +14,10 @@ func NewController(service service.IService) controller {
 	return controller{service: service}
 }
 
-func (ct controller) UpdateDocument(ctx *fiber.Ctx) error {
-	req := model.Request{}
-	if err := ctx.BodyParser(&req); err != nil {
-		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
-			"error": true,
-			"msg":   err.Error(),
-		})
+func (ct controller) Login(ctx *fiber.Ctx) error {
+	result, err := ct.service.Login(ctx)
+	if err != nil {
+		return ctx.Status(fiber.StatusUnauthorized).JSON(err.Error())
 	}
-
-	// Set RefId in context
-	result := ct.service.UpdateDocument(ctx, &req)
-	result.RefID = req.CallbackRefid
 	return ctx.JSON(result)
-
 }

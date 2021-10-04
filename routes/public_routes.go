@@ -9,9 +9,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func PublicRoutes(ctx *fiber.App) {
+func PublicRoutes(app *fiber.App) {
 	repository := repository.NewRepository(config.Db())
 	service := service.NewService(repository)
 	controller := controller.NewController(service)
-	ctx.Post("/UpdateDocument", controller.UpdateDocument)
+	group := app.Group("/auth")
+	group.Get("/login", controller.Login)
 }

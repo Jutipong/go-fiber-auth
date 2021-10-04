@@ -2,94 +2,84 @@ package model
 
 import (
 	"database/sql"
+	"encoding/base64"
+	"strings"
 	"time"
+
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/utils"
+	"github.com/gookit/validate"
 )
 
-//======================= Model Database =======================
-type TmpDocument struct {
-	DocRefNo          string       `gorm:"primaryKey; column:DocRefNo"`
-	DocumentID        string       `gorm:"column:DocumentID"`
-	CustomerProfileID string       `gorm:"column:CustomerProfileID"`
-	DocTypeID         int64        `gorm:"column:DocTypeID"`
-	DocNo             string       `gorm:"column:DocNo"`
-	FileName          string       `gorm:"column:FileName"`
-	StartDate         sql.NullTime `gorm:"column:StartDate"`
-	Enddate           sql.NullTime `gorm:"column:Enddate"`
-	CreatedDate       time.Time    `gorm:"column:CreatedDate"`
-	CreatedBy         string       `gorm:"column:CreatedBy"`
-	UpdatedDate       time.Time    `gorm:"autoUpdateTime; column:UpdatedDate"`
-	UpdatedBy         string       `gorm:"column:UpdatedBy"`
-	ChronicleID       string       `gorm:"column:ChronicleID"`
-	SeqID             string       `gorm:"column:SeqID"`
-	Version           string       `gorm:"column:Version"`
-	FileSize          int64        `gorm:"column:FileSize"`
-	Status            string       `gorm:"column:Status"`
-	UploadStatus      string       `gorm:"column:UploadStatus"`
-	OrderNo           string       `gorm:"column:OrderNo"`
-	DocumentGUID      string       `gorm:"column:DocumentGUID"`
-	DocFullName       string       `gorm:"column:DocFullName"`
+// ** ใช้สำหรับ query database on gorm.
+// ===================== model entity =====================//
+type Auth struct {
+	Id         string       `gorm:"primaryKey; column:Id"`
+	UserName   string       `gorm:"column:Name" validate:"required"`
+	Password   string       `gorm:"column:Last" json:"passwrod" validate:"required"`
+	CreateDate time.Time    `gorm:"column:CreateDate;autoCreateTime"`
+	CreateBy   string       `gorm:"column:CreateBy; default:System"`
+	UpdateDate sql.NullTime `gorm:"column:UpdateDate; autoUpdateTime;"`
+	UpdateBy   string       `gorm:"column:UpdateBy"`
+	IsActive   bool         `gorm:"column:IsActive; default:true"`
+	UserId     string       `gorm:"column:UserId"`
+	// ##foreign
+	User User `gorm:"references:UserId;foreignKey:UserId;"`
 }
 
-func (c *TmpDocument) TableName() string {
-	return "tmpDocument"
+func (a *Auth) TableName() string {
+	return "Auth"
 }
 
-type DocumentVersion struct {
-	DocRefNo       string    `gorm:"primaryKey; column:DocRefNo"`
-	DocumentID     string    `gorm:"column:DocumentID"`
-	LastVersion    string    `gorm:"column:LastVersion"`
-	ApproveVersion string    `gorm:"column:ApproveVersion"`
-	CreatedDate    time.Time `gorm:"column:CreatedDate"`
-	CreatedBy      string    `gorm:"column:CreatedBy"`
-	UpdatedDate    time.Time `gorm:"autoUpdateTime; column:UpdatedDate"`
-	UpdatedBy      string    `gorm:"column:UpdatedBy"`
-	DocFullName    string    `gorm:"column:DocFullName"`
+// Validation struct Auth
+func (a *Auth) Validation(c *fiber.Ctx) error {
+	// Get authorization header
+	authReq := c.Get(fiber.HeaderAuthorization)
+
+	// Check if the header contains content besides "basic".
+	if len(authReq) <= 6 || strings.ToLower(authReq[:5]) != "basic" {
+		return fiber.ErrUnauthorized
+	}
+
+	// Decode the header contents
+	raw, err := base64.StdEncoding.DecodeString(authReq[6:])
+	if err != nil {
+		return fiber.ErrUnauthorized
+	}
+
+	// Get the credentials
+	creds := utils.UnsafeString(raw)
+
+	// Check if the credentials are in the correct form
+	// which is "username:password".
+	index := strings.Index(creds, ":")
+	if index == -1 {
+		return fiber.ErrUnauthorized
+	}
+
+	// Get the username and password
+	a.UserName = creds[:index]
+	a.Password = creds[index+1:]
+
+	v := validate.Struct(a)
+	if !v.Validate() {
+		return v.Errors
+	}
+	return nil
 }
 
-func (c *DocumentVersion) TableName() string {
-	return "DocumentVersion"
+//##
+type User struct {
+	UserId     string       `gorm:"primaryKey; column:UserId"`
+	Name       string       `gorm:"column:Name"`
+	Last       string       `gorm:"column:Last"`
+	CreateDate time.Time    `gorm:"column:CreateDate; autoCreateTime"`
+	CreateBy   string       `gorm:"column:CreateBy;"`
+	UpdateDate sql.NullTime `gorm:"column:UpdateDate; autoUpdateTime"`
+	UpdateBy   string       `gorm:"column:UpdateBy"`
+	IsActive   bool         `gorm:"column:IsActive; default:true"`
 }
 
-type DocumentVersionlog struct {
-	DocRefNo             string         `gorm:"column:DocRefNo"`
-	DocumentVersionlogID int64          `gorm:"primaryKey; column:DocumentVersionlogID"`
-	DocumentID           string         `gorm:"column:DocumentID"`
-	DocTypeID            int64          `gorm:"column:DocTypeID"`
-	DocNo                string         `gorm:"column:DocNo"`
-	StartDate            sql.NullTime   `gorm:"column:StartDate"`
-	Enddate              sql.NullTime   `gorm:"column:Enddate"`
-	FileName             string         `gorm:"column:FileName"`
-	ChronicleID          string         `gorm:"column:ChronicleID"`
-	SeqID                string         `gorm:"column:SeqID"`
-	Version              string         `gorm:"column:Version"`
-	FileSize             int64          `gorm:"column:FileSize"`
-	Status               string         `gorm:"column:Status"`
-	UploadStatus         string         `gorm:"column:UploadStatus"`
-	ApproveStatus        sql.NullString `gorm:"column:ApproveStatus"`
-	CreatedDate          time.Time      `gorm:"autoCreateTime; column:CreatedDate"`
-	CreatedBy            string         `gorm:"column:CreatedBy"`
-	UpdatedDate          sql.NullTime   `gorm:"autoUpdateTime; column:UpdatedDate"`
-	UpdatedBy            string         `gorm:"column:UpdatedBy"`
-	DocFullName          string         `gorm:"column:DocFullName"`
+func (a *User) TableName() string {
+	return "User"
 }
-
-func (c *DocumentVersionlog) TableName() string {
-	return "DocumentVersionlog"
-}
-
-// type ServiceLog struct {
-// 	Id              string         `gorm:"column:ID"`
-// 	UserID          string         `gorm:"column:UserID"`
-// 	MenuNameID      string         `gorm:"column:MenuNameID"`
-// 	ServiceName     string         `gorm:"column:ServiceName"`
-// 	RequestMessage  string         `gorm:"column:RequestMessage"`
-// 	ResponseMessage string         `gorm:"column:ResponseMessage"`
-// 	ResultMessage   sql.NullString `gorm:"column:ResultMessage"`
-// 	PCode           sql.NullString `gorm:"column:PCode"`
-// 	RequestDate     time.Time      `gorm:"column:RequestDate"`
-// 	ResponseDate    time.Time      `gorm:"column:ResponseDate"`
-// }
-
-// func (c *ServiceLog) TableName() string {
-// 	return "ServiceLog"
-// }

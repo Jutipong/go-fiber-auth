@@ -3,9 +3,10 @@ package main
 import (
 	"auth/pkg/config"
 	"auth/pkg/enum"
-	"auth/pkg/middleware"
 	"auth/pkg/utils"
 	"auth/routes"
+
+	"auth/middleware"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
