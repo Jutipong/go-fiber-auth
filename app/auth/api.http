@@ -1,2 +1,14 @@
+###
 GET    http://localhost:8080/auth/login
+Authorization: Basic root:1234
+
+
+###
+POST   http://localhost:8080/auth/create
 Authorization: Basic admin:admin
+Content-Type: application/json
+
+{
+    "userName": "root",
+    "password": "1234"
+}

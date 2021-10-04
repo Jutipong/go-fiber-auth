@@ -13,6 +13,7 @@ func PublicRoutes(app *fiber.App) {
 	repository := repository.NewRepository(config.Db())
 	service := service.NewService(repository)
 	controller := controller.NewController(service)
-	group := app.Group("/auth")
-	group.Get("/login", controller.Login)
+	auth := app.Group("/auth")
+	auth.Get("/login", controller.Login)
+	auth.Post("/create", controller.Create)
 }
