@@ -15,8 +15,8 @@ import (
 // ===================== model entity =====================//
 type Auth struct {
 	Id         string       `gorm:"primaryKey; column:Id"`
-	UserName   string       `gorm:"column:Name" validate:"required"`
-	Password   string       `gorm:"column:Last" json:"passwrod" validate:"required"`
+	UserName   string       `gorm:"column:UserName" validate:"required" json:"userName"`
+	Password   string       `gorm:"column:Password" validate:"required" json:"password"`
 	CreateDate time.Time    `gorm:"column:CreateDate;autoCreateTime"`
 	CreateBy   string       `gorm:"column:CreateBy; default:System"`
 	UpdateDate sql.NullTime `gorm:"column:UpdateDate; autoUpdateTime;"`

@@ -10,11 +10,13 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type IService interface {
 	Login(ctx *fiber.Ctx) (model.Response, error)
+	Create(ctx *fiber.Ctx, auth *model.Auth) error
 }
 
 type service struct {
@@ -56,6 +58,28 @@ func (s *service) Login(ctx *fiber.Ctx) (result model.Response, err error) {
 	}
 
 	return result, nil
+}
+
+func (s *service) Create(ctx *fiber.Ctx, req *model.Auth) error {
+	// Init value
+	authId := uuid.New().String()
+	userId := uuid.New().String()
+	pass, err := HashPassword(req.Password + authId)
+	if err != nil {
+		utils.LogErrCtx(ctx, err.Error())
+		return ctx.SendStatus(fiber.StatusInternalServerError)
+	}
+	auth := model.Auth{Id: authId, UserId: userId, UserName: req.UserName, Password: pass}
+	user := model.User{UserId: userId, Name: req.UserName}
+
+	// Call repository
+	err = s.repo.Create_UserAndAuth(&auth, &user)
+	if err != nil {
+		utils.LogErrCtx(ctx, err.Error())
+		return err
+	}
+
+	return ctx.SendStatus(fiber.StatusOK)
 }
 
 func createToken(user *model.User) (string, error) {
