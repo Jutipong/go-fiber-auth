@@ -1,7 +1,10 @@
 ###
 GET    http://localhost:8080/auth/login
-Authorization: Basic root:1234
+Authorization: Basic admin:admin
 
+###
+GET    http://localhost:8080/auth/login
+Authorization: Basic root:1234
 
 ###
 POST   http://localhost:8080/auth/create

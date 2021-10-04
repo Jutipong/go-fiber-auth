@@ -13,7 +13,7 @@ import (
 //=============================================================//
 type logs struct {
 	TransactionId string    `json:"TransactionId,omitempty"`
-	UserId        int64     `json:"UserId,omitempty"`
+	UserId        string    `json:"UserId,omitempty"`
 	Level         string    `json:"Level" default:"INFO"` //เช่น info, err, warn
 	Timestamp     time.Time `json:"@timestamp"`
 	// Code          string    `json:"Code,omitempty"`

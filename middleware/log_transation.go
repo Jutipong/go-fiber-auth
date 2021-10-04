@@ -15,7 +15,7 @@ import (
 //==============================================================//
 type transationLogs struct {
 	TransactionId string                 `json:"TransactionId,omitempty"`
-	UserId        int64                  `json:"UserId,omitempty"`
+	UserId        string                 `json:"UserId,omitempty"`
 	Level         string                 `json:"Level"`
 	Method        string                 `json:"Method,omitempty"`
 	HttpStatus    int                    `json:"HttpStatus,omitempty"`
