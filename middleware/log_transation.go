@@ -35,9 +35,6 @@ func Logger(c *fiber.Ctx) error {
 	tLog.RequestURI = c.OriginalURL()
 	tLog.Request = request
 
-	//Set InitDefaultUserInfo
-	utils.InitDefaultUserInfo(c)
-
 	err := c.Next()
 
 	var response interface{}
