@@ -4,12 +4,11 @@ import (
 	"auth/pkg/enum"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 )
 
 type UserInfo struct {
 	TransactionId string `json:"TransactionId"`
-	UserId        int64  `json:"UserId"`
+	UserId        string `json:"UserId"`
 }
 
 func GetUserInfo(c *fiber.Ctx) UserInfo {
@@ -18,12 +17,6 @@ func GetUserInfo(c *fiber.Ctx) UserInfo {
 		return userInfo.(UserInfo)
 	}
 	return UserInfo{}
-}
-
-func InitDefaultUserInfo(ctx *fiber.Ctx) {
-	ctx.Locals(enum.USER_INFO, UserInfo{
-		TransactionId: uuid.New().String(),
-		UserId:        1111})
 }
 
 func SetUserInfo(c *fiber.Ctx, userInfo UserInfo) {

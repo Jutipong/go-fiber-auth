@@ -90,7 +90,11 @@ func createToken(user *model.User) (string, error) {
 
 	// Set claims
 	claims := token.Claims.(jwt.MapClaims)
-	claims[enum.USER_INFO] = utils.JsonSerialize(*user)
+	transactionId := uuid.New().String()
+	claims[enum.USER_INFO] = utils.JsonSerialize(&utils.UserInfo{
+		TransactionId: transactionId,
+		UserId:        user.UserId,
+	})
 	claims["exp"] = time.Now().Add(time.Hour * time.Duration(_config.Token_Expire)).Unix()
 
 	// Generate encoded token and send it as response.
