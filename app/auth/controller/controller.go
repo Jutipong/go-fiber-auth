@@ -1,8 +1,8 @@
 package controller
 
 import (
-	"auth/app/document/model"
-	"auth/app/document/service"
+	"auth/app/auth/model"
+	"auth/app/auth/service"
 
 	"github.com/gofiber/fiber/v2"
 )

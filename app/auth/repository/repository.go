@@ -1,7 +1,7 @@
 package repository
 
 import (
-	"auth/app/document/model"
+	"auth/app/auth/model"
 	"auth/pkg/enum"
 	"errors"
 	"fmt"

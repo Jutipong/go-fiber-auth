@@ -1,8 +1,8 @@
 package service
 
 import (
-	"auth/app/document/model"
-	"auth/app/document/repository"
+	"auth/app/auth/model"
+	"auth/app/auth/repository"
 	"auth/pkg/utils"
 	"database/sql"
 

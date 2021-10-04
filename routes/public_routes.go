@@ -1,9 +1,9 @@
 package routes
 
 import (
-	"auth/app/document/controller"
-	"auth/app/document/repository"
-	"auth/app/document/service"
+	"auth/app/auth/controller"
+	"auth/app/auth/repository"
+	"auth/app/auth/service"
 	"auth/pkg/config"
 
 	"github.com/gofiber/fiber/v2"
