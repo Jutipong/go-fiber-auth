@@ -37,7 +37,7 @@ func (s *service) Login(ctx *fiber.Ctx) (result model.Response, err error) {
 	auth, err := s.repo.Inquiry_Auth(authReq.UserName)
 	if err != nil {
 		utils.LogErrCtx(ctx, err.Error())
-		return result, err
+		return result, fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	//## Validate password
@@ -45,9 +45,14 @@ func (s *service) Login(ctx *fiber.Ctx) (result model.Response, err error) {
 		return result, fiber.ErrUnauthorized
 	}
 
+	//## Check User in db was data.
+	if auth.User.UserId == "" {
+		return result, fiber.NewError(fiber.StatusUnauthorized, "User not found in database.")
+	}
+
 	result.Token, err = createToken(&auth.User)
 	if err != nil {
-		return result, err
+		return result, fiber.NewError(fiber.StatusInternalServerError)
 	}
 
 	return result, nil
