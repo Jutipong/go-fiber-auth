@@ -1,1 +1,12 @@
-go-fiber-auth
+## Start Project
+- F5 (Debug)
+- gomon
+
+## Extension vs code
+- Go
+- Error Lens
+- Go Test Explorer
+- REST Client
+
+## Test Call api
+- file *.http ใช้สำหรับเรียก api 
