@@ -15,7 +15,7 @@ import (
 )
 
 type IService interface {
-	Login(ctx *fiber.Ctx) (model.Response, error)
+	Login(ctx *fiber.Ctx, authReq *model.Auth) (model.Response, error)
 	Create(ctx *fiber.Ctx, auth *model.Auth) error
 }
 
@@ -27,14 +27,7 @@ func NewService(repo repository.IRepository) IService {
 	return &service{repo}
 }
 
-func (s *service) Login(ctx *fiber.Ctx) (result model.Response, err error) {
-
-	// Validation Model
-	var authReq model.Auth
-	if err = authReq.Validation(ctx); err != nil {
-		return result, err
-	}
-
+func (s *service) Login(ctx *fiber.Ctx, authReq *model.Auth) (result model.Response, err error) {
 	// Inquiry in db.
 	auth, err := s.repo.Inquiry_Auth(authReq.UserName)
 	if err != nil {
@@ -79,7 +72,7 @@ func (s *service) Create(ctx *fiber.Ctx, req *model.Auth) error {
 		return err
 	}
 
-	return ctx.SendStatus(fiber.StatusOK)
+	return nil
 }
 
 func createToken(user *model.User) (string, error) {
