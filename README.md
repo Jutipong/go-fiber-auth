@@ -1,3 +1,9 @@
+## run first project by this command:
+
+```bash
+go get
+```
+
 ## Start Project
 - F5 (Debug)
 - gomon
