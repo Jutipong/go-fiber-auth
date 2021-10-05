@@ -16,7 +16,13 @@ func NewController(service service.IService) controller {
 }
 
 func (ct controller) Login(ctx *fiber.Ctx) error {
-	result, err := ct.service.Login(ctx)
+	// Validation Model
+	var authReq model.Auth
+	if err := authReq.Validation(ctx); err != nil {
+		return fiber.ErrBadRequest
+	}
+
+	result, err := ct.service.Login(ctx, &authReq)
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(err.Error())
 	}
@@ -36,5 +42,5 @@ func (ct controller) Create(ctx *fiber.Ctx) error {
 	if err != nil {
 		return ctx.Status(fiber.StatusUnauthorized).JSON(err.Error())
 	}
-	return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{"status": "success"})
+	return ctx.JSON(fiber.Map{"status": "success"})
 }
